@@ -1,5 +1,4 @@
 import 'package:culinary_craft_wireframe/Services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -17,8 +16,6 @@ class SignInWithGoogleOrFacebookWidget extends StatefulWidget {
 
 class _SignInWithGoogleOrFacebookWidgetState
     extends State<SignInWithGoogleOrFacebookWidget> {
-
-  final FirebaseAuth auth = FirebaseAuth.instance;
 
   // User? user;
   //
@@ -207,55 +204,65 @@ class _SignInWithGoogleOrFacebookWidgetState
   }
 
   _handleGoogleSignIn() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn();
     try {
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
+      await GoogleSignIn.instance.initialize();
+      final GoogleSignInAccount account =
+      await GoogleSignIn.instance.authenticate();
+      final String username =
+      (account.displayName != null && account.displayName!.trim().isNotEmpty)
+          ? account.displayName!.trim()
+          : account.email.split('@').first;
 
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          idToken: googleSignInAuthentication.idToken,
-          accessToken: googleSignInAuthentication.accessToken,
-        );
-
-        // Sign in with Firebase Auth
-        final UserCredential userCredential = await auth.signInWithCredential(credential);
-        final User? user = userCredential.user;
-
-        // Extract user's email and name
-        final String? userEmail = user?.email;
-        final String? userName = user?.displayName;
-
-        if (userEmail != null && userName != null) {
-          AuthService.signInWithGoogle(context, userName, userEmail);
-        }
-
-        Navigator.pushNamed(context, "/home");
+      final String? errorMessage =
+      await AuthService.signInWithGoogle(context, username, account.email);
+      if (errorMessage != null) {
+        _showError(errorMessage);
       }
-    } catch(e) {
-      print(e);
+    } on GoogleSignInException catch (e) {
+      _showError(e.description ?? "Google Sign-In failed.");
+    } catch (_) {
+      _showError("Google Sign-In failed. Please try again.");
     }
   }
 
   _handleFacebookSignIn() async {
-      // Trigger the sign-in flow
-      final LoginResult loginResult = await FacebookAuth.instance.login();
+    final LoginResult loginResult = await FacebookAuth.instance.login(
+      permissions: ['public_profile', 'email'],
+    );
 
-      if (loginResult.status == LoginStatus.success) {
-        final AccessToken accessToken = loginResult.accessToken!;
-        final OAuthCredential credential =
-        FacebookAuthProvider.credential(accessToken.token);
-        try {
-          Future<UserCredential> userCredential = FirebaseAuth.instance.signInWithCredential(credential);
-          print(userCredential);
-          print("Facebook signed in successfully!");
-        } on FirebaseAuthException catch (e) {
-          // manage Firebase authentication exceptions
-        } catch (e) {
-          // manage other exceptions
-        }
-      } else {
-        // login was not successful, for example user cancelled the process
+    if (loginResult.status == LoginStatus.success) {
+      final Map<String, dynamic> userData = await FacebookAuth.instance.getUserData(
+        fields: "name,email",
+      );
+      final String? email = userData['email']?.toString();
+      if (email == null || email.isEmpty) {
+        _showError("Facebook account did not return an email address.");
+        return;
       }
+
+      final String username = userData['name']?.toString().trim().isNotEmpty == true
+          ? userData['name'].toString().trim()
+          : email.split('@').first;
+
+      final String? errorMessage =
+      await AuthService.signInWithFacebook(context, username, email);
+      if (errorMessage != null) {
+        _showError(errorMessage);
+      }
+      return;
+    }
+
+    if (loginResult.status == LoginStatus.cancelled) {
+      _showError("Facebook Sign-In cancelled.");
+      return;
+    }
+
+    _showError(loginResult.message ?? "Facebook Sign-In failed.");
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 }

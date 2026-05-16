@@ -75,14 +75,39 @@ class AuthService {
     deleteId();
   }
 
-  static void signInWithGoogle(BuildContext context, String username, String email) async {
+  static Future<String?> signInWithGoogle(
+      BuildContext context, String username, String email) async {
+    return _signInWithSocialProvider(
+      context,
+      username: username,
+      email: email,
+      endpointPath: signInWithGooglePath,
+    );
+  }
+
+  static Future<String?> signInWithFacebook(
+      BuildContext context, String username, String email) async {
+    return _signInWithSocialProvider(
+      context,
+      username: username,
+      email: email,
+      endpointPath: signInWithFacebookPath,
+    );
+  }
+
+  static Future<String?> _signInWithSocialProvider(
+      BuildContext context, {
+        required String username,
+        required String email,
+        required String endpointPath,
+      }) async {
     Map data = {
       "username": username,
       "email": email,
     };
 
     var body = jsonEncode(data);
-    var url = Uri.parse("$baseURL/$signInWithGooglePath");
+    var url = Uri.parse("$baseURL/$endpointPath");
 
     http.Response response = await http.post(
         url,
@@ -95,8 +120,9 @@ class AuthService {
     if (response.statusCode == 200) {
       retriveDataFromResponse(response);
       Navigator.of(context).pushReplacementNamed('/home');
+      return null;
     } else {
-      print("Error!");
+      return "Social login failed. Please try again.";
     }
   }
 
