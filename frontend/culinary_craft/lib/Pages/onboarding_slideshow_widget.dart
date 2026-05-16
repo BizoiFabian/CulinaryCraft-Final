@@ -40,7 +40,7 @@ class _OnboardingSlideshowWidgetState extends State<OnboardingSlideshowWidget> {
           : FocusScope.of(context).unfocus(),
       child: Scaffold(
         key: scaffoldKey,
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
           top: true,
           child: Column(

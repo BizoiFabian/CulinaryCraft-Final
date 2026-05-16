@@ -8,12 +8,11 @@ import 'package:culinary_craft_wireframe/Pages/reset_password_with_code_widget.d
 import 'package:culinary_craft_wireframe/Pages/view_favorite_recipes.dart';
 import 'package:culinary_craft_wireframe/Pages/view_my_recipes.dart';
 import 'package:culinary_craft_wireframe/Pages/view_recipes_widget.dart';
-import 'package:culinary_craft_wireframe/Services/recipe_service.dart';
+import 'package:culinary_craft_wireframe/Components/Ingredient.dart';
 import 'package:culinary_craft_wireframe/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'Components/Ingredient.dart';
-import 'Components/Recipe.dart';
 import 'Pages/about_us_widget.dart';
 import 'Pages/edit_profile_widget.dart';
 import 'Pages/get_started_widget.dart';
@@ -24,9 +23,7 @@ import 'Pages/sign_in_with_google_or_facebook_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await _initializeFirebaseSafely();
 
  // List<Recipe> testRecipes = RecipeService.getAllRecipesPagination() as List<Recipe>;
   runApp(MaterialApp(
@@ -52,5 +49,22 @@ void main() async {
       '/about_us':(context) => AboutUsWidget(),
     },
   ));
+}
+
+Future<void> _initializeFirebaseSafely() async {
+  try {
+    if (Firebase.apps.isNotEmpty) return;
+
+    if (kIsWeb) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      return;
+    }
+
+    await Firebase.initializeApp();
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+  }
 }
 

@@ -52,18 +52,18 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return Text(
                             'Loading...',
-                            style: Theme.of(context).textTheme.headline1!,
+                            style: Theme.of(context).textTheme.displayLarge!,
                           );
                         } else if (snapshot.hasError) {
                           return Text(
                             'Error: ${snapshot.error}',
-                            style: Theme.of(context).textTheme.headline1!,
+                            style: Theme.of(context).textTheme.displayLarge!,
                           );
                         } else {
                           final username = snapshot.data ?? 'Guest';
                           return Text(
                             'Hello, $username',
-                            style: Theme.of(context).textTheme.headline1!,
+                            style: Theme.of(context).textTheme.displayLarge!,
                           );
                         }
                       },

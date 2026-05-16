@@ -5,6 +5,9 @@ spring:
     password: password
     driver-class-name: org.postgresql.Driver
 
+  codec:
+    max-in-memory-size: 1MB
+
   jpa:
     show-sql: true
     hibernate:
@@ -23,8 +26,8 @@ spring:
     suffix: .html
 
   mail:
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: culinarycraft
+    password: mrkt twyx pglq ywqa
 
   constants:
     companyName: "Culinary Craft"
@@ -37,4 +40,7 @@ spring:
 apiVersion: "/api/v1"
 
 admin:
-  password: ${ADMIN_PASSWORD}
+  password: 1234
+
+server:
+  port: 8081

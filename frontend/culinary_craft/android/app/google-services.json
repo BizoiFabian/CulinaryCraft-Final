@@ -1,41 +1,42 @@
 {
   "project_info": {
-    "project_number": "591392172427",
-    "project_id": "culinarycraft-10c08",
-    "storage_bucket": "culinarycraft-10c08.appspot.com"
+    "project_number": "129610240508",
+    "project_id": "culinarycraft-10c08-c9345",
+    "storage_bucket": "culinarycraft-10c08-c9345.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:591392172427:android:998d3faa8b15303564278e",
+        "mobilesdk_app_id": "1:129610240508:android:99a8840b9a3eed0fbc6279",
         "android_client_info": {
           "package_name": "com.example.culinary_craft"
         }
       },
       "oauth_client": [
         {
-          "client_id": "591392172427-mlv63f1h2dhveo32hc8em72nl4sen0e2.apps.googleusercontent.com",
+          "client_id": "129610240508-ejetcimlef8t3pg2dpvqpv05jitshrhs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.culinary_craft",
+            "certificate_hash": "877064249d50acb9fbc418e5d80d39e06596cbb2"
+          }
+        },
+        {
+          "client_id": "129610240508-jagf6bkavquojojhf05re1kng6kugenu.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAVqOTtiPFKyIQFluL3js4zbfs-nSl_QvE"
+          "current_key": "AIzaSyCenBIX2me3PMvn27i4rLdxBeaEzw3XAOw"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "591392172427-mlv63f1h2dhveo32hc8em72nl4sen0e2.apps.googleusercontent.com",
+              "client_id": "129610240508-jagf6bkavquojojhf05re1kng6kugenu.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "591392172427-1tn6r191ksl4dp85ag5gcs9ma4g52umj.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.culinaryCraft.RunnerTests"
-              }
             }
           ]
         }

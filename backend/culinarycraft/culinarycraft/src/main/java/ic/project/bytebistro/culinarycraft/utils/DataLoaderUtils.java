@@ -27,7 +27,7 @@ import static ic.project.bytebistro.culinarycraft.utils.PasswordGenerator.hashPa
 public class DataLoaderUtils implements CommandLineRunner {
 
     private final String ADMIN_USERNAME = "admin";
-    private final String ADMIN_MAIL = "culinarycraft60@gmail.com";
+    private final String ADMIN_MAIL = "culinarycraft48@gmail.com";
 
     @Value("${admin.password}")
     private String ADMIN_PASSWORD;
@@ -108,7 +108,7 @@ public class DataLoaderUtils implements CommandLineRunner {
                               String recipeDescription,
                               String recipeImageUrl,
                               List<String> ingredients) {
-        User user = userRepository.findByEmailAndLoginType("culinarycraft60@gmail.com", LoginType.USERNAME_PASSWORD);
+        User user = userRepository.findByEmailAndLoginType("culinarycraft48@gmail.com", LoginType.USERNAME_PASSWORD);
         if (user == null) {
             throw new UserNotFoundException();
         }

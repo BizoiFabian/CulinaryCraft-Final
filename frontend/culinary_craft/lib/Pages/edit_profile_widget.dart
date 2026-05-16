@@ -72,18 +72,18 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Text(
                         'Loading...',
-                        style: Theme.of(context).textTheme.bodyText1!,
+                        style: Theme.of(context).textTheme.bodyLarge!,
                       );
                     } else if (snapshot.hasError) {
                       return Text(
                         'Error: ${snapshot.error}',
-                        style: Theme.of(context).textTheme.bodyText1!,
+                        style: Theme.of(context).textTheme.bodyLarge!,
                       );
                     } else {
                       final email = snapshot.data ?? 'Guest';
                       return Text(
                         '$email',
-                        style: Theme.of(context).textTheme.bodyText1!,
+                        style: Theme.of(context).textTheme.bodyLarge!,
                       );
                     }
                   },
