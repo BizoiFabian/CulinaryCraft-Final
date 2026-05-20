@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../l10n/app_localizations.dart';
 
 import '../Models/sign_in_model.dart';
 import '../Services/auth_service.dart'; // Import the AuthService
@@ -55,9 +53,14 @@ class _SignInWidgetState extends State<SignInWidget> {
   }
 
   void _signIn() async {
+    final l10n = context.l10n;
     setState(() {
-      _usernameError = _model.emailAddressController?.text.isEmpty == true ? 'Please enter your username' : null;
-      _passwordError = _model.passwordController?.text.isEmpty == true ? 'Please enter your password' : null;
+      _usernameError = _model.emailAddressController?.text.isEmpty == true
+          ? l10n.enterUsername
+          : null;
+      _passwordError = _model.passwordController?.text.isEmpty == true
+          ? l10n.enterPassword
+          : null;
       _authError = null; // Reset authentication error
     });
 
@@ -74,8 +77,10 @@ class _SignInWidgetState extends State<SignInWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -84,7 +89,7 @@ class _SignInWidgetState extends State<SignInWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sign In',
+                  l10n.signIn,
                   style: GoogleFonts.roboto(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
@@ -94,14 +99,14 @@ class _SignInWidgetState extends State<SignInWidget> {
                 if (_authError != null) // Display authentication error
                   Text(
                     _authError!,
-                    style: TextStyle(color: Colors.red, fontSize: 14),
+                    style: TextStyle(color: colorScheme.error, fontSize: 14),
                   ),
                 SizedBox(height: 10),
                 TextField(
                   controller: _model.emailAddressController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: l10n.username,
                     errorText: _usernameError,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -113,7 +118,7 @@ class _SignInWidgetState extends State<SignInWidget> {
                   controller: _model.passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: l10n.password,
                     errorText: _passwordError,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -123,10 +128,10 @@ class _SignInWidgetState extends State<SignInWidget> {
                 SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _signIn,
-                  child: Text('Sign In', style: TextStyle(color: Colors.white)),
+                  child: Text(l10n.signIn, style: TextStyle(color: Colors.white)),
                   style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                    backgroundColor: MaterialStateProperty.all(Color(0xFF0077B6)),
+                    backgroundColor: MaterialStateProperty.all(colorScheme.primary),
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     )),
@@ -139,10 +144,10 @@ class _SignInWidgetState extends State<SignInWidget> {
                     Navigator.of(context).pushNamed('/forgot_password');
                   },
                   child: Text(
-                    'I don\'t remember my password',
+                    l10n.forgotPassword,
                     style: GoogleFonts.roboto(
                       fontSize: 14,
-                      color: Colors.blue,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
@@ -154,7 +159,7 @@ class _SignInWidgetState extends State<SignInWidget> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'Don\'t have an account yet?',
+                          l10n.dontHaveAccount,
                           style: GoogleFonts.roboto(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -165,10 +170,10 @@ class _SignInWidgetState extends State<SignInWidget> {
                           onPressed: () {
                             Navigator.of(context).pushNamed('/signup');
                           },
-                          child: Text('Create Account', style: TextStyle(color: Colors.white)),
+                          child: Text(l10n.createAccount, style: TextStyle(color: Colors.white)),
                           style: ButtonStyle(
                             minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                            backgroundColor: MaterialStateProperty.all(Color(0xFF90E0EF)),
+                            backgroundColor: MaterialStateProperty.all(colorScheme.secondary),
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
                             )),

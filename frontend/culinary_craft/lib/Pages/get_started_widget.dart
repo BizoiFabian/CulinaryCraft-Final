@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import '../Models/get_started_model.dart';
-import 'onboarding_slideshow_widget.dart';
 
 class GetStartedWidget extends StatefulWidget {
   const GetStartedWidget({Key? key}) : super(key: key);
@@ -20,7 +20,7 @@ class _GetStartedWidgetState extends State<GetStartedWidget> {
   void initState() {
     super.initState();
     _model = GetStartedModel(); // Inițializare GetStartedModel
-    WidgetsBinding.instance!.addPostFrameCallback((_) => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
   }
 
   @override
@@ -31,6 +31,8 @@ class _GetStartedWidgetState extends State<GetStartedWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _model.unfocusNode.canRequestFocus
           ? FocusScope.of(context).requestFocus(_model.unfocusNode)
@@ -55,8 +57,13 @@ class _GetStartedWidgetState extends State<GetStartedWidget> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            width: 473,
-                            height: 347,
+                            width: MediaQuery.of(context).size.width * 0.82,
+                            height: MediaQuery.of(context).size.height * 0.34,
+                            constraints: const BoxConstraints(
+                              maxWidth: 430,
+                              maxHeight: 360,
+                              minHeight: 230,
+                            ),
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               image: const DecorationImage(
@@ -66,6 +73,13 @@ class _GetStartedWidgetState extends State<GetStartedWidget> {
                                 ),
                               ),
                               borderRadius: BorderRadius.circular(32),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            l10n.appTitle,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -87,16 +101,16 @@ class _GetStartedWidgetState extends State<GetStartedWidget> {
                           },
                           style: ButtonStyle(
                             minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                            backgroundColor: MaterialStateProperty.all(Color(0xFF0077B6)),
+                            backgroundColor: MaterialStateProperty.all(colorScheme.primary),
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
                             )),
                           ),
                           child: Text(
-                            'Get Started',
+                            l10n.getStarted,
                             style: GoogleFonts.roboto(
                               fontSize: 22,
-                              color: Colors.white, // Schimbați culoarea textului în alb
+                              color: colorScheme.onPrimary,
                             ),
                           ),
                         ),

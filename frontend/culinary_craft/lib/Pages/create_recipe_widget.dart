@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import '../Components/Ingredient.dart';
 import '../Services/recipe_service.dart';
 import 'dart:io';
-import 'package:flutter/services.dart' show rootBundle; // pentru a încărca asset-ul implicit
+import 'package:culinary_craft_wireframe/l10n/app_localizations.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 class CreateRecipeWidget extends StatefulWidget {
@@ -38,6 +38,7 @@ class _CreateRecipeWidgetState extends State<CreateRecipeWidget> {
   }
 
   Future<void> _createRecipe() async {
+    final l10n = context.l10n;
     final String name = _nameController.text;
     final String description = _descriptionController.text;
 
@@ -55,7 +56,7 @@ class _CreateRecipeWidgetState extends State<CreateRecipeWidget> {
           Navigator.of(context).pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to create recipe')),
+            SnackBar(content: Text(l10n.createRecipeFailed)),
           );
         }
       } catch (e) {
@@ -65,16 +66,17 @@ class _CreateRecipeWidgetState extends State<CreateRecipeWidget> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Toate câmpurile sunt necesare')),
+        SnackBar(content: Text(l10n.requiredFields)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Recipe'),
+        title: Text(l10n.createRecipe),
       ),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
@@ -84,16 +86,16 @@ class _CreateRecipeWidgetState extends State<CreateRecipeWidget> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Recipe Name'),
+              decoration: InputDecoration(labelText: l10n.recipeName),
             ),
             SizedBox(height: 10),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(labelText: l10n.description),
               maxLines: 3,
             ),
             SizedBox(height: 10),
-            Text('Ingredients:'),
+            Text('${l10n.ingredients}:'),
             Wrap(
               spacing: 6.0,
               runSpacing: 6.0,
@@ -108,14 +110,14 @@ class _CreateRecipeWidgetState extends State<CreateRecipeWidget> {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: _pickImage,
-              child: Text('Upload Image'),
+              child: Text(l10n.uploadImage),
             ),
             SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _createRecipe,
-                child: Text('Create Recipe'),
+                child: Text(l10n.createRecipe),
               ),
             ),
           ],
