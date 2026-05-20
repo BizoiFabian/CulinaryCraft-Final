@@ -65,8 +65,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify-code")
-    public ResponseEntity<Void> verifyCode(@RequestParam Long userId, @RequestBody Long securityCode) {
-        userService.verifySecurityCode(userId, securityCode);
+    public ResponseEntity<Void> verifyCode(@RequestParam Long userId, @RequestBody String securityCode) {
+        userService.verifySecurityCode(userId, Long.parseLong(securityCode));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

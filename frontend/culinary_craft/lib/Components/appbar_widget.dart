@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomAppbarWidget extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppbarWidget extends StatelessWidget {
   const CustomAppbarWidget({
     super.key,
     required this.homeRoute,
@@ -11,53 +11,35 @@ class CustomAppbarWidget extends StatelessWidget implements PreferredSizeWidget 
   final String profileRoute;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kBottomNavigationBarHeight);
-
-  @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                Navigator.pushNamed(context, homeRoute); // Redirecționare către ruta către Home
-              },
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.home, size: 24),
-                  SizedBox(height: 2),
-                  Text(
-                    'Home',
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                Navigator.pushNamed(context, profileRoute);
-              },
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.person, size: 24),
-                  SizedBox(height: 2),
-                  Text(
-                    'Profile',
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+    final String? currentRoute = ModalRoute.of(context)?.settings.name;
+    final int selectedIndex = currentRoute == profileRoute ? 1 : 0;
+
+    return BottomNavigationBar(
+      currentIndex: selectedIndex,
+      type: BottomNavigationBarType.fixed,
+      showUnselectedLabels: true,
+      selectedFontSize: 12,
+      unselectedFontSize: 11,
+      selectedItemColor: Theme.of(context).colorScheme.primary,
+      unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home_rounded),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline_rounded),
+          activeIcon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
+      ],
+      onTap: (int index) {
+        final String route = index == 0 ? homeRoute : profileRoute;
+        if (route == currentRoute) return;
+        Navigator.pushNamed(context, route);
+      },
     );
   }
 }

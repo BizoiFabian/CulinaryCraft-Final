@@ -140,6 +140,7 @@ class AuthService {
     if (response.statusCode == 200) {
       dynamic responseData = jsonDecode(response.body);
       if (responseData is int) {
+        setId(responseData);
         print("User ID: $responseData");
         Navigator.of(context).pushNamed('/reset_password_with_code');
       } else {
@@ -155,6 +156,9 @@ class AuthService {
     int? id = await getId();
     var url = Uri.parse("$baseURL/$verifyCodePath$ID_REQUEST_PARAMETER=$id");
     Map<String, String> cookies = {};
+    
+    // print securityCode
+    print("securityCode: $securityCode");
 
     http.Response response = await http.post(
       url,

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../Components/Ingredient.dart';
 import '../Components/ingredient_widget.dart';
@@ -132,7 +131,7 @@ class _HomeWidgetState extends State<HomeWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       bottomNavigationBar: CustomAppbarWidget(
         homeRoute: '/home',
         profileRoute: '/profile',
@@ -166,21 +165,15 @@ class _HomeWidgetState extends State<HomeWidget> {
             SizedBox(height: 10),
             Text(
               'Craft recipes',
-              style: GoogleFonts.inter(
-                textStyle: TextStyle(
-                  fontSize: 30,
-                ),
-              ),
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             Text(
               'Select your ingredients:',
-              style: GoogleFonts.inter(
-                textStyle: TextStyle(
-                  fontSize: 16,
-                ),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(height: 5),
+            SizedBox(height: 12),
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
@@ -211,95 +204,50 @@ class _HomeWidgetState extends State<HomeWidget> {
                 },
               ),
             ),
-            SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: selectedIngredients.isNotEmpty
-                    ? () async {
-                  Navigator.of(context).pushNamed('/create_recipes', arguments: selectedIngredients);
-                }
-                    : null,
-                child: Text(
-                  'Create Recipe',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: selectedIngredients.isNotEmpty
+                          ? () async {
+                              Navigator.of(context).pushNamed('/create_recipes', arguments: selectedIngredients);
+                            }
+                          : null,
+                      icon: const Icon(Icons.auto_awesome_rounded),
+                      label: const Text('Create Recipe'),
                     ),
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0077B6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: selectedIngredients.isNotEmpty
-                    ? () async {
-                  final recipes = await RecipeService.searchRecipes(
-                    selectedIngredients.map((ing) => ing.id).toList(),
-                    0,
-                  );
-                  if (recipes.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('No recipes found.'),
-                      ),
-                    );
-                  } else {
-                    Navigator.of(context).pushNamed('/view_recipes', arguments: selectedIngredients);
-                  }
-                }
-                    : null,
-                child: Text(
-                  'Search Recipes',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: selectedIngredients.isNotEmpty
+                          ? () async {
+                              final recipes = await RecipeService.searchRecipes(
+                                selectedIngredients.map((ing) => ing.id).toList(),
+                                0,
+                              );
+                              if (recipes.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('No recipes found.'),
+                                  ),
+                                );
+                              } else {
+                                Navigator.of(context).pushNamed('/view_recipes', arguments: selectedIngredients);
+                              }
+                            }
+                          : null,
+                      icon: const Icon(Icons.search_rounded),
+                      label: const Text('Search Recipes'),
                     ),
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0077B6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _showImageSourceSelection,
-                child: Text(
-                  'Scan ingredient',
-                  style: GoogleFonts.roboto(
-                    textStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: _showImageSourceSelection,
+                      icon: const Icon(Icons.document_scanner_rounded),
+                      label: const Text('Scan ingredient'),
                     ),
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0077B6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                  ],
                 ),
               ),
             ),

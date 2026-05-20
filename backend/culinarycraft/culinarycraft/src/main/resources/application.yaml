@@ -11,7 +11,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       default-schema: public
     properties:
       dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -26,8 +26,8 @@ spring:
     suffix: .html
 
   mail:
-    username: culinarycraft
-    password: mrkt twyx pglq ywqa
+    username: culinarycraft48@gmail.com
+    password: fkzz gmow iopc krhc
 
   constants:
     companyName: "Culinary Craft"
