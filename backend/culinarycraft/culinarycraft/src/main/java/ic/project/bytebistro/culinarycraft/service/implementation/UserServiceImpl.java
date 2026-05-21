@@ -61,6 +61,8 @@ public class UserServiceImpl implements UserService {
         user.setIsActive(true);
         user.setFavouritesRecipes(new ArrayList<>());
         user.setMyRecipes(new ArrayList<>());
+        user.setExcludedIngredients(new ArrayList<>());
+        user.setDietaryPreferencesCompleted(false);
         registerResponseDTO = modelMapper.map(userRepository.save(user), RegisterResponseDTO.class);
         registerResponseDTO.setIsReactivated(false);
         return registerResponseDTO;
@@ -104,6 +106,9 @@ public class UserServiceImpl implements UserService {
         User newUser = modelMapper.map(userLoginWithGoogleOrFacebookDTO, User.class);
         newUser.setPassword(hashPassword(generatePassword(12)));
         newUser.setLoginType(loginType);
+        newUser.setExcludedIngredients(new ArrayList<>());
+        newUser.setDietaryRestrictions(new ArrayList<>());
+        newUser.setDietaryPreferencesCompleted(false);
         if (user != null) {
             if (user.getLoginType() == loginType) {
                 return modelMapper.map(user, UserResponseDTO.class);

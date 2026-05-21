@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import '../Components/auth_scaffold.dart';
 import '../Models/reset_password_with_code_model.dart';
 import '../Services/auth_service.dart';
+import '../l10n/app_localizations.dart';
 
 class ResetPasswordWithCodeWidget extends StatefulWidget {
-  const ResetPasswordWithCodeWidget({Key? key}) : super(key: key);
+  const ResetPasswordWithCodeWidget({super.key});
 
   @override
   State<ResetPasswordWithCodeWidget> createState() =>
@@ -14,7 +16,7 @@ class ResetPasswordWithCodeWidget extends StatefulWidget {
 class _ResetPasswordWithCodeWidgetState
     extends State<ResetPasswordWithCodeWidget> {
   late ResetPasswordWithCodeModel _model;
-  late String enteredCode = ''; // Initializează enteredCode cu o valoare inițială
+  String _enteredCode = '';
   String? _codeError;
 
   @override
@@ -29,133 +31,89 @@ class _ResetPasswordWithCodeWidgetState
     super.dispose();
   }
 
-  void _resetPassword() {
+  void _verify() {
+    final AppLocalizations l10n = context.l10n;
     setState(() {
-      if (enteredCode.length != 4) {
-        _codeError = 'Please enter a 4-digit code';
-      } else {
-        _codeError = null;
-      }
+      _codeError = _enteredCode.length != 4 ? l10n.pleaseEnter4DigitCode : null;
     });
-    if (_codeError == null) {
-     // Navigator.of(context).pushNamed('/change_password');
-      AuthService.verifyCode(context, enteredCode);
-      _codeError = 'The code is wrong';
-    }
+    if (_codeError != null) return;
+    AuthService.verifyCode(context, _enteredCode);
+    setState(() => _codeError = l10n.wrongCode);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          color: Colors.black,
-        ),
-      ),
-      body: SafeArea(
-        top: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Expanded(
-              child: Align(
-                alignment: const AlignmentDirectional(0, 0),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Enter the code',
-                        style: TextStyle(
-                          fontSize: 35,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Divider(
-                        height: 30,
-                        thickness: 1,
-                        color: Colors.white,
-                      ),
-                      PinCodeTextField(
-                        autoDisposeControllers: false,
-                        appContext: context,
-                        length: 4,
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                        ),
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        enableActiveFill: false,
-                        autoFocus: true,
-                        enablePinAutofill: false,
-                        errorTextSpace: 16,
-                        showCursor: true,
-                        cursorColor: Colors.blue,
-                        obscureText: false,
-                        hintCharacter: '●',
-                        keyboardType: TextInputType.number,
-                        pinTheme: PinTheme(
-                          fieldHeight: 44,
-                          fieldWidth: 44,
-                          borderWidth: 2,
-                          borderRadius: BorderRadius.circular(12),
-                          shape: PinCodeFieldShape.box,
-                          activeColor: Colors.blue,
-                          inactiveColor: Colors.grey,
-                          selectedColor: Colors.blue,
-                          activeFillColor: Colors.blue,
-                          inactiveFillColor: Colors.grey,
-                          selectedFillColor: Colors.blue,
-                        ),
-                        onChanged: (value) {
-                          enteredCode = value;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                      ),
-                      if (_codeError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            _codeError!,
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(0, 24, 0, 0),
-                        child: ElevatedButton(
-                          onPressed: _resetPassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: const Text(
-                            'Reset Password',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+    final AppLocalizations l10n = context.l10n;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return AuthScaffold(
+      title: l10n.enterCodeTitle,
+      subtitle: l10n.enterCodeSubtitle,
+      heroIcon: Icons.mark_email_unread_rounded,
+      showBackButton: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          PinCodeTextField(
+            autoDisposeControllers: false,
+            appContext: context,
+            length: 4,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            textStyle: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+            enableActiveFill: true,
+            autoFocus: true,
+            enablePinAutofill: false,
+            errorTextSpace: 0,
+            showCursor: true,
+            cursorColor: colorScheme.primary,
+            obscureText: false,
+            keyboardType: TextInputType.number,
+            pinTheme: PinTheme(
+              fieldHeight: 56,
+              fieldWidth: 52,
+              borderWidth: 1.5,
+              borderRadius: BorderRadius.circular(14),
+              shape: PinCodeFieldShape.box,
+              activeColor: colorScheme.primary,
+              inactiveColor: colorScheme.outlineVariant,
+              selectedColor: colorScheme.primary,
+              activeFillColor: colorScheme.primaryContainer.withValues(alpha: 0.35),
+              inactiveFillColor: colorScheme.surfaceContainerHighest,
+              selectedFillColor: colorScheme.surface,
+            ),
+            onChanged: (String value) => _enteredCode = value,
+            onCompleted: (_) => _verify(),
+          ),
+          if (_codeError != null) ...<Widget>[
+            const SizedBox(height: 6),
+            Center(
+              child: Text(
+                _codeError!,
+                style: TextStyle(
+                  color: colorScheme.error,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
-        ),
+          const SizedBox(height: 22),
+          FilledButton.icon(
+            onPressed: _verify,
+            icon: const Icon(Icons.check_rounded),
+            label: Text(l10n.verifyCode),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

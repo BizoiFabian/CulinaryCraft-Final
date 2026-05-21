@@ -3,6 +3,7 @@ package ic.project.bytebistro.culinarycraft.repository.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -48,4 +49,21 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "recipe_id"))
     private List<Recipe> favouritesRecipes;
+
+    @Column(name = "dietary_preferences_completed")
+    private Boolean dietaryPreferencesCompleted = false;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "user_dietary_restrictions",
+            joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "restriction")
+    private List<String> dietaryRestrictions = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_excluded_ingredients",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "ingredient_id"))
+    private List<Ingredient> excludedIngredients = new ArrayList<>();
 }

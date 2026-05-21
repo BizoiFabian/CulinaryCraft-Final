@@ -5,6 +5,7 @@ import 'package:culinary_craft_wireframe/Services/globals.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dietary_preference_service.dart';
 
 
 class AuthService {
@@ -61,7 +62,7 @@ class AuthService {
 
     if (response.statusCode == 200) {
       retriveDataFromResponse(response);
-      Navigator.of(context).pushReplacementNamed('/home');
+      await navigateAfterLogin(context);
       return null;  // Fără eroare
     } else if (response.statusCode == 409) {
       // Specific pentru cazurile de conflict, cum ar fi email-ul deja folosit
@@ -82,16 +83,6 @@ class AuthService {
       username: username,
       email: email,
       endpointPath: signInWithGooglePath,
-    );
-  }
-
-  static Future<String?> signInWithFacebook(
-      BuildContext context, String username, String email) async {
-    return _signInWithSocialProvider(
-      context,
-      username: username,
-      email: email,
-      endpointPath: signInWithFacebookPath,
     );
   }
 
@@ -119,10 +110,29 @@ class AuthService {
 
     if (response.statusCode == 200) {
       retriveDataFromResponse(response);
-      Navigator.of(context).pushReplacementNamed('/home');
+      await navigateAfterLogin(context);
       return null;
     } else {
       return "Social login failed. Please try again.";
+    }
+  }
+
+  static Future<void> navigateAfterLogin(BuildContext context) async {
+    final int? userId = await getId();
+    if (userId == null) {
+      Navigator.of(context).pushReplacementNamed('/home');
+      return;
+    }
+    try {
+      final DietaryPreferencesData prefs =
+          await DietaryPreferenceService.getPreferences(userId);
+      if (prefs.completed) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/dietary_preferences');
+      }
+    } catch (_) {
+      Navigator.of(context).pushReplacementNamed('/dietary_preferences');
     }
   }
 

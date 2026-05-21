@@ -86,12 +86,16 @@ class _OnboardingSlideshowWidgetState extends State<OnboardingSlideshowWidget> {
 
                             Navigator.of(context).pushNamed('/signin_with_google_or_facebook');
                           },
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                            backgroundColor: MaterialStateProperty.all(Color(0xFF0077B6)),
-                            shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            )),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 56),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                            elevation: 2,
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -99,7 +103,9 @@ class _OnboardingSlideshowWidgetState extends State<OnboardingSlideshowWidget> {
                               'Continue',
                               style: GoogleFonts.roboto(
                                 fontSize: 22,
-                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    Theme.of(context).colorScheme.onPrimary,
                               ),
                             ),
                           ),

@@ -1,10 +1,10 @@
 import 'package:culinary_craft_wireframe/Services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../Components/auth_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class SignInWithGoogleOrFacebookWidget extends StatefulWidget {
   const SignInWithGoogleOrFacebookWidget({super.key});
@@ -17,247 +17,120 @@ class SignInWithGoogleOrFacebookWidget extends StatefulWidget {
 class _SignInWithGoogleOrFacebookWidgetState
     extends State<SignInWithGoogleOrFacebookWidget> {
 
-  // User? user;
-  //
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   auth.authStateChanges().listen((event) {
-  //     setState(() {
-  //       user = event;
-  //     });
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // Sau orice culoare dorești
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Align(
-                alignment: AlignmentDirectional(0, 0),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          'assets/images/icon2.png',
-                          width: 208,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(0, 24, 0, 0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Handle continue with Google
-                            _handleGoogleSignIn();
-                          },
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all(
-                              Size(double.infinity, 50),
-                            ),
-                            backgroundColor:
-                            MaterialStateProperty.all(Color(0xFF90E0EF)),
-                            shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.google,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Continue with Google',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Handle continue with Facebook
-                            // print("Facebook signed in successfully!");
-                            _handleFacebookSignIn();
-                          },
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all(
-                              Size(double.infinity, 50),
-                            ),
-                            backgroundColor:
-                            MaterialStateProperty.all(Color(0xFF90E0EF)),
-                            shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              FaIcon(
-                                FontAwesomeIcons.facebook,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Continue with Facebook',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(0, 24, 0, 0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () async {
-                                HapticFeedback.lightImpact();
-                                Navigator.of(context).pushNamed('/signin');
-                              },
-                              style: ButtonStyle(
-                                minimumSize: MaterialStateProperty.all(
-                                  Size(170, 50),
-                                ),
-                                backgroundColor:
-                                MaterialStateProperty.all(Color(0xFF0077B6)),
-                                shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                'Sign In',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                Navigator.of(context).pushNamed('/signup');
-                              },
-                              style: ButtonStyle(
-                                minimumSize: MaterialStateProperty.all(
-                                  Size(170, 50),
-                                ),
-                                backgroundColor:
-                                MaterialStateProperty.all(Color(0xFF0077B6)),
-                                shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                'Sign Up',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+    final AppLocalizations l10n = context.l10n;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return AuthScaffold(
+      title: l10n.welcomeHeroTitle,
+      subtitle: l10n.welcomeHeroSubtitle,
+      heroIcon: Icons.restaurant_menu_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          ElevatedButton.icon(
+            onPressed: _handleGoogleSignIn,
+            icon: const FaIcon(
+              FontAwesomeIcons.google,
+              size: 18,
+              color: Colors.white,
+            ),
+            label: Text(l10n.continueWithGoogle),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDB4437),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 2,
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Row(
+            children: <Widget>[
+              Expanded(child: Divider(color: colorScheme.outlineVariant)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  l10n.or,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+              Expanded(child: Divider(color: colorScheme.outlineVariant)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.of(context).pushNamed('/signin');
+                  },
+                  icon: const Icon(Icons.login_rounded),
+                  label: Text(l10n.signIn),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: BorderSide(color: colorScheme.primary),
+                    foregroundColor: colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => Navigator.of(context).pushNamed('/signup'),
+                  icon: const Icon(Icons.person_add_alt_1_rounded),
+                  label: Text(l10n.signUp),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  _handleGoogleSignIn() async {
+  Future<void> _handleGoogleSignIn() async {
     try {
       await GoogleSignIn.instance.initialize();
       final GoogleSignInAccount account =
-      await GoogleSignIn.instance.authenticate();
+          await GoogleSignIn.instance.authenticate();
       final String username =
-      (account.displayName != null && account.displayName!.trim().isNotEmpty)
-          ? account.displayName!.trim()
-          : account.email.split('@').first;
+          (account.displayName != null && account.displayName!.trim().isNotEmpty)
+              ? account.displayName!.trim()
+              : account.email.split('@').first;
 
       final String? errorMessage =
-      await AuthService.signInWithGoogle(context, username, account.email);
+          await AuthService.signInWithGoogle(context, username, account.email);
       if (errorMessage != null) {
         _showError(errorMessage);
       }
     } on GoogleSignInException catch (e) {
-      _showError(e.description ?? "Google Sign-In failed.");
+      _showError(e.description ?? 'Google Sign-In failed.');
     } catch (_) {
-      _showError("Google Sign-In failed. Please try again.");
+      _showError('Google Sign-In failed. Please try again.');
     }
-  }
-
-  _handleFacebookSignIn() async {
-    final LoginResult loginResult = await FacebookAuth.instance.login(
-      permissions: ['public_profile', 'email'],
-    );
-
-    if (loginResult.status == LoginStatus.success) {
-      final Map<String, dynamic> userData = await FacebookAuth.instance.getUserData(
-        fields: "name,email",
-      );
-      final String? email = userData['email']?.toString();
-      if (email == null || email.isEmpty) {
-        _showError("Facebook account did not return an email address.");
-        return;
-      }
-
-      final String username = userData['name']?.toString().trim().isNotEmpty == true
-          ? userData['name'].toString().trim()
-          : email.split('@').first;
-
-      final String? errorMessage =
-      await AuthService.signInWithFacebook(context, username, email);
-      if (errorMessage != null) {
-        _showError(errorMessage);
-      }
-      return;
-    }
-
-    if (loginResult.status == LoginStatus.cancelled) {
-      _showError("Facebook Sign-In cancelled.");
-      return;
-    }
-
-    _showError(loginResult.message ?? "Facebook Sign-In failed.");
   }
 
   void _showError(String message) {

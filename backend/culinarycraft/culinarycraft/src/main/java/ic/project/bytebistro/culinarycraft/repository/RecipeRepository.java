@@ -16,6 +16,30 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Page<Recipe> findAllByUser(User user, Pageable pageable);
     Page<Recipe> findAllByLikesContaining(User user, Pageable pageable);
 
-    @Query("SELECT r FROM Recipe r JOIN r.ingredients i WHERE i.id IN :ingredientsID GROUP BY r HAVING COUNT(DISTINCT i.id) = :size")
-    Page<Recipe> findByIngredientsContaining(@Param("ingredientsID") List<Long> ingredientsID, @Param("size") long size, Pageable pageable);
+    @Query(value = "SELECT r FROM Recipe r JOIN r.ingredients i " +
+            "WHERE i.id IN :ingredientsID " +
+            "GROUP BY r " +
+            "ORDER BY COUNT(DISTINCT i.id) DESC, r.id ASC",
+           countQuery = "SELECT COUNT(DISTINCT r) FROM Recipe r JOIN r.ingredients i " +
+                    "WHERE i.id IN :ingredientsID")
+    Page<Recipe> findByIngredientsContaining(@Param("ingredientsID") List<Long> ingredientsID, Pageable pageable);
+
+    @Query(value = "SELECT r FROM Recipe r JOIN r.ingredients i " +
+            "WHERE i.id IN :ingredientsID " +
+            "AND NOT EXISTS (" +
+            "  SELECT 1 FROM Recipe r2 JOIN r2.ingredients ex " +
+            "  WHERE r2 = r AND ex.id IN :excludedIds" +
+            ") " +
+            "GROUP BY r " +
+            "ORDER BY COUNT(DISTINCT i.id) DESC, r.id ASC",
+           countQuery = "SELECT COUNT(DISTINCT r) FROM Recipe r JOIN r.ingredients i " +
+                    "WHERE i.id IN :ingredientsID " +
+                    "AND NOT EXISTS (" +
+                    "  SELECT 1 FROM Recipe r2 JOIN r2.ingredients ex " +
+                    "  WHERE r2 = r AND ex.id IN :excludedIds" +
+                    ")")
+    Page<Recipe> findByIngredientsContainingExcluding(
+            @Param("ingredientsID") List<Long> ingredientsID,
+            @Param("excludedIds") List<Long> excludedIds,
+            Pageable pageable);
 }

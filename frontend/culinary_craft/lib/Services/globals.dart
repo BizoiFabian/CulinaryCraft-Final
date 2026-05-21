@@ -10,7 +10,6 @@ const String EMAIL = "email";
 const String registerPath = "register";
 const String loginPath = "login";
 const String signInWithGooglePath = "sign-in-with-google";
-const String signInWithFacebookPath = "sign-in-with-facebook";
 const String forgotPasswordPath = "forgot-password";
 const String verifyCodePath = "verify-code";
 const String ingredientsPath = "ingredients";

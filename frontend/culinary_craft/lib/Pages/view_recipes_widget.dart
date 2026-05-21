@@ -6,14 +6,23 @@ import '../Components/Recipe.dart';
 import '../Components/recipe_widget.dart';
 import '../Services/recipe_service.dart';
 import '../Services/auth_service.dart';
+import '../l10n/app_localizations.dart';
+import '../Components/recipes_page_header.dart';
+import '../Components/recipe_image_view.dart';
+import '../theme/app_colors.dart';
 
 class ViewRecipesWidget extends StatefulWidget {
+  const ViewRecipesWidget({
+    super.key,
+    required this.selectedIngredients,
+    this.imageData,
+  });
+
   final List<Ingredient> selectedIngredients;
   final Uint8List? imageData;
-  ViewRecipesWidget({required this.selectedIngredients, this.imageData});
 
   @override
-  _ViewRecipesWidgetState createState() => _ViewRecipesWidgetState();
+  State<ViewRecipesWidget> createState() => _ViewRecipesWidgetState();
 }
 
 class _ViewRecipesWidgetState extends State<ViewRecipesWidget> {
@@ -26,32 +35,31 @@ class _ViewRecipesWidgetState extends State<ViewRecipesWidget> {
   void initState() {
     super.initState();
     _searchRecipes();
-
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && !isLoading) {
+      if (_scrollController.position.pixels ==
+              _scrollController.position.maxScrollExtent &&
+          !isLoading) {
         _searchRecipes();
       }
     });
   }
 
   Future<void> _searchRecipes() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     try {
-      List<int> ingredientsIds = widget.selectedIngredients.map((ingredient) => ingredient.id).toList();
-      final List<Recipe> searchedRecipes = await RecipeService.searchRecipes(ingredientsIds, currentPage);
+      final List<int> ingredientsIds =
+          widget.selectedIngredients.map((Ingredient i) => i.id).toList();
+      final List<Recipe> searchedRecipes =
+          await RecipeService.searchRecipes(ingredientsIds, currentPage);
+      if (!mounted) return;
       setState(() {
         recipes.addAll(searchedRecipes);
         currentPage++;
       });
     } catch (e) {
-      print('Error searching recipes: $e');
+      debugPrint('Error searching recipes: $e');
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -63,55 +71,93 @@ class _ViewRecipesWidgetState extends State<ViewRecipesWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Recipes',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white)),
-        iconTheme: IconThemeData(
-          color: Colors.white, // Culoarea săgeții de întoarcere
-        ),
-        backgroundColor: Color(0xFF00b4d8),
-      ),
-      backgroundColor: Color(0xFF00b4d8),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: ListView.builder(
-          controller: _scrollController,
-          itemCount: recipes.length + (isLoading ? 1 : 0),
-          itemBuilder: (BuildContext context, int index) {
-            if (index == recipes.length) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            final recipe = recipes[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RecipeDetailsScreen(recipe: recipe),
+      backgroundColor: colorScheme.surface,
+      body: Column(
+        children: <Widget>[
+          RecipesPageHeader(
+            title: l10n.recipes,
+            subtitle: recipes.isNotEmpty ? '${recipes.length}' : null,
+            onBack: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: recipes.isEmpty && !isLoading
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            Icons.menu_book_outlined,
+                            size: 56,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.noRecipesFound,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    itemCount: recipes.length + (isLoading ? 1 : 0),
+                    separatorBuilder: (_, __) => const SizedBox(height: 14),
+                    itemBuilder: (BuildContext context, int index) {
+                      if (index == recipes.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      final Recipe recipe = recipes[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  RecipeDetailsScreen(recipe: recipe),
+                            ),
+                          );
+                        },
+                        child: RecipeCard(recipe: recipe),
+                      );
+                    },
                   ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: RecipeCard(recipe: recipe),
-              ),
-            );
-          },
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
+enum RecipeDetailsMode { search, myRecipe, favorite }
+
 class RecipeDetailsScreen extends StatefulWidget {
+  const RecipeDetailsScreen({
+    super.key,
+    required this.recipe,
+    this.mode = RecipeDetailsMode.search,
+  });
+
   final Recipe recipe;
-  RecipeDetailsScreen({required this.recipe});
+  final RecipeDetailsMode mode;
 
   @override
-  _RecipeDetailsScreenState createState() => _RecipeDetailsScreenState();
+  State<RecipeDetailsScreen> createState() => _RecipeDetailsScreenState();
 }
 
 class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
@@ -124,118 +170,191 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   }
 
   Future<void> _checkIfFavorite() async {
-    int? userId = await AuthService.getId();
-    if (userId != null) {
+    final int? userId = await AuthService.getId();
+    if (userId != null && mounted) {
       setState(() {
         isFavorite = widget.recipe.likes.any((like) => like.id == userId);
       });
     }
   }
 
-  Future<void> _toggleFavorite() async {
+  Future<void> _deleteRecipe() async {
     try {
-      bool success;
-      if (isFavorite) {
-        success = await RecipeService.removeRecipeFromFavourites(widget.recipe.id);
-      } else {
-        success = await RecipeService.addRecipeToFavourites(widget.recipe.id);
-      }
-
-      if (success) {
-        setState(() {
-          isFavorite = !isFavorite;
-        });
-      } else {
+      final bool success = await RecipeService.deleteRecipe(widget.recipe.id);
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update favourite status')),
+          SnackBar(content: Text(context.l10n.recipeDeleted)),
+        );
+        Navigator.of(context).pop(true);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.recipeDeleteFailed)),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to connect to the server')),
-      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.connectionError)),
+        );
+      }
+    }
+  }
+
+  Future<void> _showDeleteConfirmationDialog() async {
+    final AppLocalizations l10n = context.l10n;
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.confirmDeleteRecipe),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.close),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await _deleteRecipe();
+  }
+
+  Future<void> _toggleFavorite() async {
+    try {
+      final bool success = isFavorite
+          ? await RecipeService.removeRecipeFromFavourites(widget.recipe.id)
+          : await RecipeService.addRecipeToFavourites(widget.recipe.id);
+
+      if (success && mounted) {
+        setState(() => isFavorite = !isFavorite);
+        if (widget.mode == RecipeDetailsMode.favorite && !isFavorite) {
+          Navigator.of(context).pop(true);
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.favoriteUpdateFailed)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.connectionError)),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = context.l10n;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.recipe.name),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    // Do something to make the image bigger
-                  });
-                },
-                child: _buildRecipeImage(widget.recipe.imageURL, widget.recipe.imageData),
+      backgroundColor: colorScheme.surface,
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            expandedHeight: 260,
+            pinned: true,
+            backgroundColor: isDark ? AppColors.accentDeep : AppColors.primary,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                widget.recipe.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              background: _buildHeroImage(context),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    l10n.description,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.recipe.description,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                          height: 1.45,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    l10n.ingredients,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: widget.recipe.ingredients
+                        .map(
+                          (ingredient) => Chip(
+                            label: Text(ingredient.name),
+                            backgroundColor: colorScheme.primaryContainer,
+                            labelStyle: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            side: BorderSide.none,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
-            SizedBox(height: 16),
-            Text(
-              'Name: ${widget.recipe.name}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Description: ${widget.recipe.description}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Ingredients:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Wrap(
-              spacing: 6.0,
-              runSpacing: 6.0,
-              children: widget.recipe.ingredients
-                  .map((ingredient) => Chip(label: Text(ingredient.name)))
-                  .toList(),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _toggleFavorite,
-        child: Icon(
-          isFavorite ? Icons.favorite : Icons.favorite_border,
-          color: isFavorite ? Colors.red : null,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: widget.mode == RecipeDetailsMode.myRecipe
+          ? FloatingActionButton.extended(
+              onPressed: _showDeleteConfirmationDialog,
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+              icon: const Icon(Icons.delete_outline_rounded),
+              label: Text(l10n.delete),
+            )
+          : FloatingActionButton.extended(
+              onPressed: _toggleFavorite,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              icon: Icon(
+                isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+              ),
+              label: Text(
+                isFavorite ? l10n.savedRecipes : l10n.addToFavorites,
+              ),
+            ),
     );
   }
 
-  Widget _buildRecipeImage(String imageUrl, Uint8List imageData) {
-    if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
-        width: 350,
-        height: 250,
-        fit: BoxFit.cover,
-      );
-    } else if (imageData.isNotEmpty) {
-      return Image.memory(
-        imageData,
-        width: 350,
-        height: 250,
-        fit: BoxFit.cover,
-      );
-    } else {
-      return Container(
-        width: 350,
-        height: 250,
-        color: Colors.grey,
-        child: Icon(Icons.image, size: 50, color: Colors.white),
-      );
-    }
+  Widget _buildHeroImage(BuildContext context) {
+    return RecipeImageView(
+      imageUrl: widget.recipe.imageURL,
+      imageData: widget.recipe.imageData,
+      aspectRatio: 1.2,
+      fit: BoxFit.cover,
+    );
   }
 }

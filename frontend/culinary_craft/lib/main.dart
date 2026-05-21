@@ -24,6 +24,7 @@ import 'Pages/home_widget.dart';
 import 'Pages/profile_widget.dart';
 import 'Pages/sign_in_widget.dart';
 import 'Pages/sign_in_with_google_or_facebook_widget.dart';
+import 'Pages/dietary_preferences_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +69,9 @@ class CulinaryCraftApp extends StatelessWidget {
             '/signup': (context) => CreateAccountWidget(),
             '/profile': (context) => ProfileWidget(),
             '/home': (context) => HomeWidget(),
+            '/dietary_preferences': (context) => const DietaryPreferencesWidget(),
+            '/dietary_preferences_edit': (context) =>
+                const DietaryPreferencesWidget(isEditMode: true),
             '/edit_profile': (context) => EditProfileWidget(),
             '/forgot_password': (context) => ForgotPasswordWidget(),
             '/reset_password_with_code': (context) => ResetPasswordWithCodeWidget(),

@@ -1,191 +1,212 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '../Components/auth_scaffold.dart';
+import '../Models/sign_in_model.dart';
+import '../Services/auth_service.dart';
 import '../l10n/app_localizations.dart';
 
-import '../Models/sign_in_model.dart';
-import '../Services/auth_service.dart'; // Import the AuthService
-
 class SignInWidget extends StatefulWidget {
-  const SignInWidget({Key? key}) : super(key: key);
+  const SignInWidget({super.key});
 
   @override
-  _SignInWidgetState createState() => _SignInWidgetState();
+  State<SignInWidget> createState() => _SignInWidgetState();
 }
 
 class _SignInWidgetState extends State<SignInWidget> {
-  late StreamSubscription<bool> _keyboardVisibilitySubscription;
-  bool _isKeyboardVisible = false;
-  final bool isWeb = kIsWeb;
   late SignInModel _model;
+  bool _obscurePassword = true;
+  bool _loading = false;
   String? _usernameError;
   String? _passwordError;
-  String? _authError; // New field for authentication error
+  String? _authError;
 
   @override
   void initState() {
     super.initState();
     _model = SignInModel();
     _model.initState(context);
-
-    _model.emailAddressController = TextEditingController(); // Inițializăm controllerul de email
-    _model.passwordController = TextEditingController(); // Inițializăm controllerul de parolă
-
-    if (!isWeb) {
-      _keyboardVisibilitySubscription =
-          KeyboardVisibilityController().onChange.listen((bool visible) {
-            setState(() {
-              _isKeyboardVisible = visible;
-            });
-          });
-    }
+    _model.emailAddressController = TextEditingController();
+    _model.passwordController = TextEditingController();
   }
 
   @override
   void dispose() {
-    if (!isWeb) {
-      _keyboardVisibilitySubscription.cancel();
-    }
     _model.dispose();
     super.dispose();
   }
 
-  void _signIn() async {
-    final l10n = context.l10n;
+  Future<void> _signIn() async {
+    final AppLocalizations l10n = context.l10n;
     setState(() {
-      _usernameError = _model.emailAddressController?.text.isEmpty == true
+      _usernameError = _model.emailAddressController?.text.trim().isEmpty == true
           ? l10n.enterUsername
           : null;
       _passwordError = _model.passwordController?.text.isEmpty == true
           ? l10n.enterPassword
           : null;
-      _authError = null; // Reset authentication error
+      _authError = null;
     });
+    if (_usernameError != null || _passwordError != null) return;
 
-    if (_usernameError == null && _passwordError == null) {
-      // Call the AuthService.login and handle the error message
-      String? error = await AuthService.login(context, _model.emailAddressController!.text, _model.passwordController!.text);
-      if (error != null) {
-        setState(() {
-          _authError = error;
-        });
-      }
-    }
+    setState(() => _loading = true);
+    final String? error = await AuthService.login(
+      context,
+      _model.emailAddressController!.text.trim(),
+      _model.passwordController!.text,
+    );
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _authError = error;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(30, 60, 30, 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.signIn,
-                  style: GoogleFonts.roboto(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+    final AppLocalizations l10n = context.l10n;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return AuthScaffold(
+      title: l10n.signIn,
+      subtitle: l10n.signInSubtitle,
+      heroIcon: Icons.lock_open_rounded,
+      showBackButton: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (_authError != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: colorScheme.onErrorContainer,
+                    size: 18,
                   ),
-                ),
-                SizedBox(height: 30),
-                if (_authError != null) // Display authentication error
-                  Text(
-                    _authError!,
-                    style: TextStyle(color: colorScheme.error, fontSize: 14),
-                  ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: _model.emailAddressController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: l10n.username,
-                    errorText: _usernameError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _authError!,
+                      style: TextStyle(
+                        color: colorScheme.onErrorContainer,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: _model.passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.password,
-                    errorText: _passwordError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _signIn,
-                  child: Text(l10n.signIn, style: TextStyle(color: Colors.white)),
-                  style: ButtonStyle(
-                    minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                    backgroundColor: MaterialStateProperty.all(colorScheme.primary),
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    )),
-                  ),
-                ),
-                SizedBox(height: 20),
-                InkWell(
-                  onTap: () {
-                    // Handle forgot password
-                    Navigator.of(context).pushNamed('/forgot_password');
-                  },
-                  child: Text(
-                    l10n.forgotPassword,
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ),
-                SizedBox(height: _isKeyboardVisible ? 12 : 24), // Muta putin mai jos cand tastatura e vizibila
-                if (!_isKeyboardVisible)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          l10n.dontHaveAccount,
-                          style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed('/signup');
-                          },
-                          child: Text(l10n.createAccount, style: TextStyle(color: Colors.white)),
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all(Size(double.infinity, 50)),
-                            backgroundColor: MaterialStateProperty.all(colorScheme.secondary),
-                            shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            )),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+                ],
+              ),
+            ),
+          TextField(
+            controller: _model.emailAddressController,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: l10n.username,
+              prefixIcon: const Icon(Icons.person_outline_rounded),
+              errorText: _usernameError,
             ),
           ),
-        ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _model.passwordController,
+            obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _signIn(),
+            decoration: InputDecoration(
+              labelText: l10n.password,
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              suffixIcon: IconButton(
+                icon: Icon(_obscurePassword
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+              ),
+              errorText: _passwordError,
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/forgot_password'),
+              child: Text(l10n.forgotPassword),
+            ),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            onPressed: _loading ? null : _signIn,
+            icon: _loading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.login_rounded),
+            label: Text(l10n.signIn),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Divider(color: colorScheme.outlineVariant),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  l10n.or,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Divider(color: colorScheme.outlineVariant),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Center(
+            child: Text(
+              l10n.dontHaveAccount,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed('/signup'),
+            icon: const Icon(Icons.person_add_alt_1_rounded),
+            label: Text(l10n.createAccount),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              side: BorderSide(color: colorScheme.primary),
+              foregroundColor: colorScheme.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

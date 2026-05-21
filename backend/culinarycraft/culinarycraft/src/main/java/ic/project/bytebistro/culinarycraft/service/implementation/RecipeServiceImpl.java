@@ -15,6 +15,7 @@ import ic.project.bytebistro.culinarycraft.repository.entity.Image;
 import ic.project.bytebistro.culinarycraft.repository.entity.Ingredient;
 import ic.project.bytebistro.culinarycraft.repository.entity.Recipe;
 import ic.project.bytebistro.culinarycraft.repository.entity.User;
+import ic.project.bytebistro.culinarycraft.service.DietaryPreferenceService;
 import ic.project.bytebistro.culinarycraft.service.RecipeService;
 import ic.project.bytebistro.culinarycraft.utils.ImageUtils;
 import org.modelmapper.ModelMapper;
@@ -42,12 +43,15 @@ public class RecipeServiceImpl implements RecipeService {
 
     private final ModelMapper modelMapper;
 
-    public RecipeServiceImpl(RecipeRepository recipeRepository, UserRepository userRepository, IngredientRepository ingredientRepository, ImageRepository imageRepository, ModelMapper modelMapper) {
+    private final DietaryPreferenceService dietaryPreferenceService;
+
+    public RecipeServiceImpl(RecipeRepository recipeRepository, UserRepository userRepository, IngredientRepository ingredientRepository, ImageRepository imageRepository, ModelMapper modelMapper, DietaryPreferenceService dietaryPreferenceService) {
         this.recipeRepository = recipeRepository;
         this.userRepository = userRepository;
         this.ingredientRepository = ingredientRepository;
         this.imageRepository = imageRepository;
         this.modelMapper = modelMapper;
+        this.dietaryPreferenceService = dietaryPreferenceService;
     }
 
     @Override
@@ -165,11 +169,20 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
-    public Page<RecipeDTO> searchRecipes(IngredientsRequestDTO ingredientsRequestDTO, int pageNumber, int pageSize) {
+    public Page<RecipeDTO> searchRecipes(IngredientsRequestDTO ingredientsRequestDTO, int pageNumber, int pageSize, Long userId) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         List<Long> ingredientsIdList = Arrays.asList(ingredientsRequestDTO.getIngredientsID());
+        List<Long> excludedIds = userId == null
+                ? List.of()
+                : dietaryPreferenceService.getExcludedIngredientIds(userId);
 
-        Page<Recipe> recipes = recipeRepository.findByIngredientsContaining(ingredientsIdList, ingredientsIdList.size(), pageable);
+        Page<Recipe> recipes;
+        if (excludedIds.isEmpty()) {
+            recipes = recipeRepository.findByIngredientsContaining(ingredientsIdList, pageable);
+        } else {
+            recipes = recipeRepository.findByIngredientsContainingExcluding(
+                    ingredientsIdList, excludedIds, pageable);
+        }
 
         List<RecipeDTO> recipeDTOS = mapRecipes(recipes);
         return new PageImpl<>(recipeDTOS);

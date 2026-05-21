@@ -8,7 +8,9 @@ class AppTheme {
       seedColor: AppColors.primary,
       brightness: Brightness.light,
       primary: AppColors.primary,
+      onPrimary: Colors.white,
       secondary: AppColors.secondary,
+      onSecondary: Colors.white,
       tertiary: AppColors.tertiary,
       surface: AppColors.surfaceLight,
     );
@@ -21,7 +23,9 @@ class AppTheme {
       seedColor: AppColors.primary,
       brightness: Brightness.dark,
       primary: AppColors.tertiary,
-      secondary: AppColors.secondary,
+      onPrimary: const Color(0xFF3A1B0E),
+      secondary: AppColors.sageSoft,
+      onSecondary: const Color(0xFF1F2D17),
       tertiary: AppColors.primary,
       surface: AppColors.surfaceDark,
     );

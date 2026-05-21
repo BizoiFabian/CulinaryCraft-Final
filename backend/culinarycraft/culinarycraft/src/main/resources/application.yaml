@@ -44,3 +44,10 @@ admin:
 
 server:
   port: 8081
+
+# Google Gemini AI — set GEMINI_API_KEY env var (https://aistudio.google.com/apikey)
+ai:
+  gemini:
+    enabled: true
+    api-key: ${GEMINI_API_KEY:}
+    model: gemini-1.5-flash

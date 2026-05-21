@@ -285,7 +285,11 @@ class RecipeService {
 
   static Future<List<Recipe>> searchRecipes(List<int> ingredientsIds, int pageNumber) async {
     const pageSize = 8;
-    final uri = Uri.parse("$baseURL/$recipesPath/search?pageNumber=$pageNumber&pageSize=$pageSize");
+    final int? userId = await AuthService.getId();
+    final String userParam = userId != null ? '&userId=$userId' : '';
+    final uri = Uri.parse(
+      "$baseURL/$recipesPath/search?pageNumber=$pageNumber&pageSize=$pageSize$userParam",
+    );
     try {
       final response = await http.post(
         uri,

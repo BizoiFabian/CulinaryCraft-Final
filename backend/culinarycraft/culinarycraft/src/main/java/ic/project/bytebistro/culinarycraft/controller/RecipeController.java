@@ -79,8 +79,9 @@ public class RecipeController {
     @PostMapping("/search")
     public ResponseEntity<Page<RecipeDTO>> searchRecipes(@RequestParam int pageNumber,
                                                          @RequestParam int pageSize,
+                                                         @RequestParam(required = false) Long userId,
                                                          @RequestBody IngredientsRequestDTO ingredientsID) {
-        return new ResponseEntity<>(recipeService.searchRecipes(ingredientsID, pageNumber, pageSize), HttpStatus.OK);
+        return new ResponseEntity<>(recipeService.searchRecipes(ingredientsID, pageNumber, pageSize, userId), HttpStatus.OK);
     }
 
     @Transactional

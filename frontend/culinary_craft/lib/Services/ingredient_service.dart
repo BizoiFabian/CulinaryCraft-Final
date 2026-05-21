@@ -4,12 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import '../Components/Ingredient.dart';
+import 'auth_service.dart';
 import 'globals.dart';
 
 class IngredientService {
   static Future<List<Ingredient>> getIngredients(int pageNumber) async {
     const pageSize = 20;
-    final uri = Uri.parse("$baseURL/$ingredientsPath?$PAGE_NUMBER_REQUEST_PARAMETER=$pageNumber&$PAGE_SIZE_REQUEST_PARAMETER=$pageSize");
+    final int? userId = await AuthService.getId();
+    final String userParam = userId != null ? '&userId=$userId' : '';
+    final uri = Uri.parse(
+      "$baseURL/$ingredientsPath?$PAGE_NUMBER_REQUEST_PARAMETER=$pageNumber&$PAGE_SIZE_REQUEST_PARAMETER=$pageSize$userParam",
+    );
 
     try {
       final response = await http.get(uri, headers: headers);
@@ -42,10 +47,12 @@ class IngredientService {
 
   static Future<List<Ingredient>> searchIngredients(String query, int pageNumber) async {
     const pageSize = 20;
+    final int? userId = await AuthService.getId();
+    final String userParam = userId != null ? '&userId=$userId' : '';
     final uri = Uri.parse(
       "$baseURL/$ingredientsPath/search?query=${Uri.encodeQueryComponent(query)}"
       "&$PAGE_NUMBER_REQUEST_PARAMETER=$pageNumber"
-      "&$PAGE_SIZE_REQUEST_PARAMETER=$pageSize",
+      "&$PAGE_SIZE_REQUEST_PARAMETER=$pageSize$userParam",
     );
 
     try {

@@ -1,62 +1,57 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'Recipe.dart';
+import 'recipe_image_view.dart';
 
 class RecipeCard extends StatelessWidget {
-  final Recipe recipe;
+  const RecipeCard({super.key, required this.recipe});
 
-  RecipeCard({required this.recipe});
+  final Recipe recipe;
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Card(
-      color: Colors.white, // Setăm culoarea cardului
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Imaginea rețetei
-            _buildRecipeImage(recipe.imageURL, recipe.imageData),
-            SizedBox(height: 8), // Spațiu mic între imagine și text
-            // Numele rețetei
-            Text(
-              recipe.name,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+      elevation: 2,
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          RecipeImageView(
+            imageUrl: recipe.imageURL,
+            imageData: recipe.imageData,
+            aspectRatio: 16 / 10,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+            child: Text(
+              _formatRecipeName(recipe.name),
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
+                    color: colorScheme.onSurface,
+                  ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRecipeImage(String imageUrl, Uint8List imageData) {
-    if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
-        width: 150,
-        height: 150,
-        fit: BoxFit.cover,
-      );
-    } else if (imageData.isNotEmpty) {
-      return Image.memory(
-        imageData,
-        width: 150,
-        height: 150,
-        fit: BoxFit.cover,
-      );
-    } else {
-      return Container(
-        width: 150,
-        height: 150,
-        color: Colors.grey,
-        child: Icon(Icons.image, size: 50, color: Colors.white),
-      );
-    }
+  static String _formatRecipeName(String name) {
+    if (name.isEmpty) return name;
+    return name
+        .split(' ')
+        .map((String word) {
+          if (word.isEmpty) return word;
+          return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+        })
+        .join(' ');
   }
 }

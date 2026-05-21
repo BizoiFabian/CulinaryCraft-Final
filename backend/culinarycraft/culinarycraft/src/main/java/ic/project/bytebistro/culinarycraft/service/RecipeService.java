@@ -28,7 +28,7 @@ public interface RecipeService {
 
     void deleteRecipe(Long userId, Long recipeId);
 
-    Page<RecipeDTO> searchRecipes(IngredientsRequestDTO ingredientsRequestDTO, int pageNumber, int pageSize);
+    Page<RecipeDTO> searchRecipes(IngredientsRequestDTO ingredientsRequestDTO, int pageNumber, int pageSize, Long userId);
 
     RecipeDTO craftRecipe2(Long id, String name, String description, Long[] ingredientsID, MultipartFile file) throws IOException;
 }

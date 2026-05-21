@@ -84,6 +84,51 @@ public class DataLoaderUtils implements CommandLineRunner {
         }
     }
 
+    public int reloadAllRecipesSync() {
+        System.out.println(">>> Clearing existing recipes (preserves users & ingredients)");
+        clearAllRecipesData();
+        System.out.println(">>> Starting sync reload of recipes from TheMealDB");
+        int totalImported = 0;
+        for (char letter = 'a'; letter <= 'z'; letter++) {
+            try {
+                String jsonData = getRecipesByFirstLetter(letter).block();
+                if (jsonData == null) {
+                    System.out.println("Letter " + letter + " returned null");
+                    continue;
+                }
+                int before = (int) recipeRepository.count();
+                parseRecipesJson(jsonData);
+                int after = (int) recipeRepository.count();
+                int added = after - before;
+                totalImported += added;
+                System.out.println("Letter " + letter + " imported " + added + " recipes (running total: " + after + ")");
+            } catch (Exception e) {
+                System.out.println("Letter " + letter + " ERROR: " + e.getMessage());
+            }
+        }
+        System.out.println(">>> Sync reload complete. Total imported: " + totalImported);
+        return totalImported;
+    }
+
+    private void clearAllRecipesData() {
+        for (User u : userRepository.findAll()) {
+            if (u.getMyRecipes() != null) {
+                u.getMyRecipes().clear();
+            }
+            if (u.getFavouritesRecipes() != null) {
+                u.getFavouritesRecipes().clear();
+            }
+            userRepository.save(u);
+        }
+        for (Ingredient ing : ingredientRepository.findAll()) {
+            if (ing.getRecipes() != null) {
+                ing.getRecipes().clear();
+                ingredientRepository.save(ing);
+            }
+        }
+        recipeRepository.deleteAllInBatch();
+    }
+
     private void createUser(String username, String mail, String password) {
         User user = User.builder()
                 .username(username)
@@ -168,7 +213,7 @@ public class DataLoaderUtils implements CommandLineRunner {
             for (JsonNode recipeNode : recipesNode) {
                 String recipeName = recipeNode.get("strMeal").asText();
                 String recipeDescription = recipeNode.get("strInstructions").asText();
-                String recipeImageUrl = recipeNode.get("strMealThumb").asText() + "/preview";
+                String recipeImageUrl = recipeNode.get("strMealThumb").asText();
                 List<String> ingredients = new ArrayList<>();
                 for (int i = 1; i <= 20; i++) {
                     String ingredient = recipeNode.get("strIngredient" + i).asText();
