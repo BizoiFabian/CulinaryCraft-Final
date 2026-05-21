@@ -36,4 +36,11 @@ public class IngredientController {
                                                                           @RequestParam int pageSize) {
         return new ResponseEntity<>(ingredientService.getIngredientsSortedByNameDescending(pageNumber, pageSize), HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<IngredientDTO>> searchIngredients(@RequestParam String query,
+                                                                 @RequestParam int pageNumber,
+                                                                 @RequestParam int pageSize) {
+        return new ResponseEntity<>(ingredientService.searchIngredients(query, pageNumber, pageSize), HttpStatus.OK);
+    }
 }

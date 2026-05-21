@@ -56,6 +56,8 @@ class AppLocalizations {
       'uploadImage': 'Upload Image',
       'requiredFields': 'All fields are required',
       'createRecipeFailed': 'Failed to create recipe',
+      'searchIngredients': 'Search ingredients',
+      'noIngredientsFound': 'No ingredients found',
     },
     'ro': <String, String>{
       'appTitle': 'Culinary Craft',
@@ -91,6 +93,8 @@ class AppLocalizations {
       'uploadImage': 'Incarca imagine',
       'requiredFields': 'Toate campurile sunt necesare',
       'createRecipeFailed': 'Crearea retetei a esuat',
+      'searchIngredients': 'Cauta ingrediente',
+      'noIngredientsFound': 'Nu am gasit ingrediente',
     },
   };
 
@@ -131,6 +135,8 @@ class AppLocalizations {
   String get uploadImage => _text('uploadImage');
   String get requiredFields => _text('requiredFields');
   String get createRecipeFailed => _text('createRecipeFailed');
+  String get searchIngredients => _text('searchIngredients');
+  String get noIngredientsFound => _text('noIngredientsFound');
 
   String helloUser(String username) {
     return _text('helloUser').replaceAll('{username}', username);

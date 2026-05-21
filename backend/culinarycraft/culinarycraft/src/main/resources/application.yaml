@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/culinary_craft_db
+    url: jdbc:postgresql://localhost:5433/culinary_craft_db
     username: user
     password: password
     driver-class-name: org.postgresql.Driver

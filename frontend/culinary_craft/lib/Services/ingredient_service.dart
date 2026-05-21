@@ -40,6 +40,40 @@ class IngredientService {
     }
   }
 
+  static Future<List<Ingredient>> searchIngredients(String query, int pageNumber) async {
+    const pageSize = 20;
+    final uri = Uri.parse(
+      "$baseURL/$ingredientsPath/search?query=${Uri.encodeQueryComponent(query)}"
+      "&$PAGE_NUMBER_REQUEST_PARAMETER=$pageNumber"
+      "&$PAGE_SIZE_REQUEST_PARAMETER=$pageSize",
+    );
+
+    try {
+      final response = await http.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+        if (responseBody.containsKey('content') && responseBody['content'] is List) {
+          final List<dynamic> data = responseBody['content'];
+          return data.map((json) {
+            return Ingredient(
+              id: json['id'],
+              name: json['name'],
+              imageURL: json['imageUrl'],
+              selected: false,
+            );
+          }).toList();
+        } else {
+          throw Exception('Unexpected response format');
+        }
+      } else {
+        throw Exception('Failed to search ingredients');
+      }
+    } catch (e) {
+      print('Search error: $e');
+      throw Exception('Failed to connect to the server');
+    }
+  }
+
   // Metodă pentru trimiterea imaginii și primirea ingredientului identificat
   static Future<Ingredient?> sendIngredientImage(File imageFile) async {
     final uri = Uri.parse("$baseURL/images/food-recognition");

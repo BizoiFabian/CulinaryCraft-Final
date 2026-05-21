@@ -56,6 +56,14 @@ public class IngredientServiceImpl implements IngredientService {
                 .build();
     }
 
+    @Override
+    public Page<IngredientDTO> searchIngredients(String query, int pageNumber, int pageSize) {
+        String safeQuery = query == null ? "" : query.trim();
+        return ingredientRepository
+                .findByNameContainingIgnoreCase(safeQuery, PageRequest.of(pageNumber, pageSize, Sort.by("name").ascending()))
+                .map(ingredient -> new IngredientDTO(ingredient.getId(), ingredient.getName(), ingredient.getUrlImage()));
+    }
+
     private Page<IngredientDTO> getIngredientsHelper(int pageNumber, int pageSize, Sort.Direction direction, String ... properties) {
         List<IngredientDTO> ingredientsDTO = new ArrayList<>();
         ingredientRepository

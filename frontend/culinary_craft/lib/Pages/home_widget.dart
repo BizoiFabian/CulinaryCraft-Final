@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +7,7 @@ import '../Components/ingredient_widget.dart';
 import '../Components/appbar_widget.dart';
 import '../Services/ingredient_service.dart';
 import '../Services/recipe_service.dart';
+import '../l10n/app_localizations.dart';
 
 class HomeWidget extends StatefulWidget {
   const HomeWidget({Key? key}) : super(key: key);
@@ -22,6 +24,11 @@ class _HomeWidgetState extends State<HomeWidget> {
   final ScrollController _scrollController = ScrollController();
   late Future<void> _initialLoad;
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _searchDebounce;
+  List<Ingredient> _searchResults = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -125,7 +132,53 @@ class _HomeWidgetState extends State<HomeWidget> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+    });
+    _searchDebounce?.cancel();
+    if (value.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      _runSearch(value.trim());
+    });
+  }
+
+  Future<void> _runSearch(String query) async {
+    if (query.isEmpty || query != _searchQuery.trim()) return;
+    setState(() {
+      _isSearching = true;
+    });
+    try {
+      final List<Ingredient> results =
+          await IngredientService.searchIngredients(query, 0);
+      if (!mounted || query != _searchQuery.trim()) return;
+      final Set<int> selectedIds =
+          selectedIngredients.map((Ingredient i) => i.id).toSet();
+      for (final Ingredient r in results) {
+        r.selected = selectedIds.contains(r.id);
+      }
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    } catch (e) {
+      print('Search failed: $e');
+      if (!mounted) return;
+      setState(() {
+        _isSearching = false;
+      });
+    }
   }
 
   @override
@@ -152,8 +205,12 @@ class _HomeWidgetState extends State<HomeWidget> {
   }
 
   Widget _buildIngredientList() {
-    // Sort ingredients with selected ingredients at the top
     ingredients.sort((a, b) => b.selected ? 1 : -1);
+    final bool hasQuery = _searchQuery.trim().isNotEmpty;
+    final List<Ingredient> visibleIngredients =
+        hasQuery ? _searchResults : ingredients;
+    final bool listLoading = hasQuery ? _isSearching : isLoading;
+    final l10n = context.l10n;
 
     return SafeArea(
       top: true,
@@ -173,36 +230,67 @@ class _HomeWidgetState extends State<HomeWidget> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: ingredients.length + (isLoading ? 1 : 0),
-                itemBuilder: (BuildContext context, int index) {
-                  if (index == ingredients.length) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  final ingredient = ingredients[index];
-                  return Column(
-                    children: [
-                      IngredientWidget(
-                        id: ingredient.id,
-                        name: ingredient.name,
-                        imageURL: ingredient.imageURL,
-                        selected: ingredient.selected,
-                        onTap: () {
-                          setState(() {
-                            toggleIngredientSelection(ingredient);
-                          });
+            const SizedBox(height: 8),
+            TextField(
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: l10n.searchIngredients,
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: hasQuery
+                    ? IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
                         },
-                      ),
-                      SizedBox(height: 5),
-                    ],
-                  );
-                },
+                      )
+                    : null,
+                isDense: true,
               ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: (visibleIngredients.isEmpty && !listLoading && hasQuery)
+                  ? Center(
+                      child: Text(
+                        l10n.noIngredientsFound,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: hasQuery ? null : _scrollController,
+                      itemCount: visibleIngredients.length + (listLoading ? 1 : 0),
+                      itemBuilder: (BuildContext context, int index) {
+                        if (index == visibleIngredients.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        final ingredient = visibleIngredients[index];
+                        return Column(
+                          children: [
+                            IngredientWidget(
+                              id: ingredient.id,
+                              name: ingredient.name,
+                              imageURL: ingredient.imageURL,
+                              selected: ingredient.selected,
+                              onTap: () {
+                                toggleIngredientSelection(ingredient);
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                          ],
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 12),
             Card(
@@ -259,14 +347,21 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   void toggleIngredientSelection(Ingredient ingredient) {
     setState(() {
-      if (selectedIngredients.contains(ingredient)) {
-        selectedIngredients.remove(ingredient);
-        ingredient.selected = false;
+      final bool wasSelected =
+          selectedIngredients.any((Ingredient i) => i.id == ingredient.id);
+      if (wasSelected) {
+        selectedIngredients.removeWhere((Ingredient i) => i.id == ingredient.id);
       } else {
         selectedIngredients.add(ingredient);
-        ingredient.selected = true;
       }
-      // Sort selected ingredients at the top
+      final bool newSelected = !wasSelected;
+      ingredient.selected = newSelected;
+      for (final Ingredient i in ingredients) {
+        if (i.id == ingredient.id) i.selected = newSelected;
+      }
+      for (final Ingredient i in _searchResults) {
+        if (i.id == ingredient.id) i.selected = newSelected;
+      }
       ingredients.sort((a, b) => b.selected ? 1 : -1);
     });
   }
